@@ -1,0 +1,354 @@
+using System;
+using System.Collections.Generic;
+
+namespace TheExperiment
+{
+    // ==============================
+    // DATOS LEGALES Y PRESENTACIÓN
+    // ==============================
+    public class PresentacionJuego
+    {
+        public static void MostrarInicio()
+        {
+            Console.WriteLine("The Experiment es una obra de ficción. Todos los personajes, organizaciones, lugares y acontecimientos fueron creados para esta historia. Cualquier parecido con personas, instituciones o hechos reales es pura coincidencia.\n");
+            Console.WriteLine("=============================");
+            Console.WriteLine("        THE EXPERIMENT");
+            Console.WriteLine("=============================");
+            Console.WriteLine("\"Algunos experimentos nunca debieron existir.\"\n");
+
+            Console.WriteLine("--- INICIO — EL PROTAGONISTA: DANIEL ---\n");
+            Console.WriteLine("Daniel es quien busca desesperadamente a su hijo. Es una persona común, decidida y valiente, dispuesto a entrar en lugares peligrosos con tal de recuperarlo.\n");
+
+            Console.WriteLine("[Suena el teléfono de Daniel]");
+            Console.WriteLine("Voz desconocida: — Si querés volver a ver a tu hijo… vení al Hospital abandonado. Vení solo. No avises a nadie… o lo perderás para siempre.");
+            Console.WriteLine("[Se corta la llamada]\n");
+            Console.WriteLine("Daniel guarda el teléfono, respira hondo, prepara sus cosas y avanza hacia la entrada oscura…\n");
+        }
+    }
+
+    // FUNCIÓN GENERAL PARA DIÁLOGOS
+    public static class UtilidadesJuego
+    {
+        public static void MostrarDialogo(string personaje, string texto)
+        {
+            Console.WriteLine($"🔊 {personaje}: — {texto}");
+        }
+    }
+
+    // ==============================
+    // ENUMERACIONES GENERALES
+    // ==============================
+    public enum TipoAcceso { LlaveFisica, TarjetaAcceso, Linterna }
+    public enum EstadoPuerta { Abierta, CerradaSinLlave, CerradaConLlave, Bloqueada }
+    public enum EstadoCamara { Apagada, Activa, ConInterferencia, SinSeñal }
+    public enum EstadoCriatura { EnLaOscuridad, Acechando, EnAtaque, Desaparecida }
+    public enum DireccionMovimiento { Adelante, Atras, Izquierda, Derecha }
+
+    // ==============================
+    // OBJETOS Y ELEMENTOS DEL JUEGO
+    // ==============================
+    public class ObjetoAcceso
+    {
+        public string Nombre { get; set; }
+        public TipoAcceso Tipo { get; set; }
+        public string CodigoPuerta { get; set; }
+        public string Descripcion { get; set; }
+    }
+
+    public class Puerta
+    {
+        public string Identificador { get; set; }
+        public string NombreLugar { get; set; }
+        public EstadoPuerta Estado { get; set; }
+        public string CodigoRequerido { get; set; }
+
+        public bool IntentarAbrir(ObjetoAcceso objeto = null)
+        {
+            if (Estado == EstadoPuerta.Abierta) return true;
+            if (Estado == EstadoPuerta.Bloqueada) return false;
+
+            if (Estado == EstadoPuerta.CerradaSinLlave)
+            {
+                Estado = EstadoPuerta.Abierta;
+                Console.WriteLine($"Puerta de {NombreLugar} ahora está ABIERTA.");
+                return true;
+            }
+
+            if (Estado == EstadoPuerta.CerradaConLlave && objeto != null && objeto.CodigoPuerta == CodigoRequerido)
+            {
+                Estado = EstadoPuerta.Abierta;
+                Console.WriteLine($"Usaste {objeto.Nombre} — puerta de {NombreLugar} ABIERTA.");
+                return true;
+            }
+            Console.WriteLine($"La puerta de {NombreLugar} no se abre. Falta objeto correcto o está cerrada.");
+            return false;
+        }
+    }
+
+    public class CamaraSeguridad
+    {
+        public string Ubicacion { get; set; }
+        public EstadoCamara Estado { get; set; }
+        public string ObtenerVista()
+        {
+            return Estado switch
+            {
+                EstadoCamara.Apagada => "Sin señal",
+                EstadoCamara.Activa => "Imagen clara — se distingue la silueta de Juan Mateo",
+                EstadoCamara.ConInterferencia => "Señal alterada, ruido y sombras",
+                EstadoCamara.SinSeñal => "Sin señal",
+                _ => "Desconocido"
+            };
+        }
+    }
+
+    // ==============================
+    // DATOS DE JUAN MATEO — EXPEDIENTE 001
+    // ==============================
+    public class Criatura
+    {
+        public string Identificador = "EXPEDIENTE 001 — SUJETO: 001";
+        public string Nombre = "Juan Mateo";
+        public string EstadoGeneral = "DESAPARECIDO";
+        public string Clasificacion = "EXPERIMENTO PROHIBIDO";
+        public string NivelPeligro = "EXTREMO";
+
+        public float AlturaAprox = 2.30f;
+        public float PesoAprox = 70f;
+        public string DescripcionFisica = "Piel pálida con marcas de experimentación; ojos completamente negros; cabello negro, largo y desordenado; extremidades alargadas, fuerza superior a la humana; vestimenta rasgada de hospital.";
+
+        public string PerfilComportamiento = "Se mueve en silencio. Acecha y ataca de forma brutal y repentina. Posee inteligencia avanzada y se adapta al entorno.";
+
+        public EstadoCriatura EstadoActual { get; set; } = EstadoCriatura.EnLaOscuridad;
+
+        public void CambiarEstado(EstadoCriatura nuevoEstado)
+        {
+            EstadoActual = nuevoEstado;
+            Console.WriteLine($"⚠️ ESTADO JUAN MATEO → {nuevoEstado}");
+        }
+    }
+
+    public class ObjetivoCapitulo
+    {
+        public string Descripcion { get; set; }
+        public bool Cumplido { get; set; }
+    }
+
+    // ==============================
+    // EL JUGADOR: DANIEL
+    // ==============================
+    public class Jugador
+    {
+        public string Nombre = "Daniel";
+        public bool TieneLinternaEnMano = false;
+        public bool LinternaEncendida = false;
+        public float BateriaLinterna = 100f;
+        public bool PuedeCorrer = true;
+        public bool EstaCorriendo = false;
+        public List<ObjetoAcceso> Inventario = new List<ObjetoAcceso>();
+
+        public Jugador()
+        {
+            Inventario.Add(new ObjetoAcceso
+            {
+                Nombre = "Linterna",
+                Tipo = TipoAcceso.Linterna,
+                CodigoPuerta = "",
+                Descripcion = "Linterna de mano, batería limitada"
+            });
+            Hablar("Tengo la linterna guardada… espero que alcance.");
+        }
+
+        public void Hablar(string texto)
+        {
+            UtilidadesJuego.MostrarDialogo(Nombre, texto);
+        }
+
+        public void SacarLinterna()
+        {
+            if (!TieneLinternaEnMano)
+            {
+                TieneLinternaEnMano = true;
+                Hablar("La saco del bolso… ahora en la mano.");
+            }
+        }
+
+        public void EncenderApagarLinterna()
+        {
+            if (!TieneLinternaEnMano) { Hablar("Primero tengo que sacarla."); return; }
+            if (BateriaLinterna <= 0) { Hablar("Batería agotada."); return; }
+
+            LinternaEncendida = !LinternaEncendida;
+            Hablar(LinternaEncendida ? "Prendo la luz… al menos veo." : "Apago para ahorrar.");
+        }
+
+        public void Moverse(DireccionMovimiento dir)
+        {
+            Hablar(EstaCorriendo ? "Corro… siento que me observan." : "Camino despacio… esto da miedo.");
+            Console.WriteLine($"→ Se mueve hacia: {dir}");
+            if (LinternaEncendida) { BateriaLinterna -= 0.2f; if (BateriaLinterna < 0) BateriaLinterna = 0; }
+        }
+
+        public void Correr(bool activar)
+        {
+            if (activar && PuedeCorrer) { EstaCorriendo = true; Hablar("Voy rápido… pero con cuidado."); }
+            else { EstaCorriendo = false; Hablar("Vuelvo a caminar despacio."); }
+        }
+
+        public void RecogerObjeto(ObjetoAcceso nuevo)
+        {
+            Inventario.Add(nuevo);
+            Hablar($"Guardo: {nuevo.Nombre}");
+        }
+    }
+
+    // ==============================
+    // CAPÍTULO 1 — COMPLETO Y SIN REPETICIONES
+    // ==============================
+    public class Capitulo1
+    {
+        public Jugador Daniel = new Jugador();
+        public Criatura JuanMateo = new Criatura();
+        public List<CamaraSeguridad> Camaras = new List<CamaraSeguridad>();
+
+        public bool PrimeraAparicionRealizada = false;
+
+        public Capitulo1()
+        {
+            Camaras.Add(new CamaraSeguridad { Ubicacion = "Cámara 1 - Pasillo Principal", Estado = EstadoCamara.Apagada });
+            Camaras.Add(new CamaraSeguridad { Ubicacion = "Cámara 2 - Recepción", Estado = EstadoCamara.Apagada });
+            Camaras.Add(new CamaraSeguridad { Ubicacion = "Cámara 3 - Zona Salida", Estado = EstadoCamara.Apagada });
+        }
+
+        public List<ObjetivoCapitulo> Objetivos = new List<ObjetivoCapitulo>
+        {
+            new ObjetivoCapitulo { Descripcion = "Encontrar llave de la morgue", Cumplido = false },
+            new ObjetivoCapitulo { Descripcion = "Leer Expediente N.º 001", Cumplido = false },
+            new ObjetivoCapitulo { Descripcion = "Escapar del hospital", Cumplido = false }
+        };
+
+        public void PrimeraComunicacionJuanMateo()
+        {
+            if (PrimeraAparicionRealizada) return;
+            PrimeraAparicionRealizada = true;
+
+            Console.WriteLine("\n--- CAPÍTULO 1 – PRIMERA COMUNICACIÓN ---\n");
+            Console.WriteLine("Daniel avanza por el largo pasillo principal del hospital. Cree que por fin encontró la salida...\n");
+            Console.WriteLine("De repente...");
+            Console.WriteLine("[Altavoces: CRRRR... CRRRR...]");
+            Console.WriteLine("(Silencio...)");
+            Console.WriteLine("[CRRRR...]\n");
+
+            UtilidadesJuego.MostrarDialogo("Juan Mateo", "Daniel...");
+            Console.WriteLine("(5 segundos de silencio...)");
+            UtilidadesJuego.MostrarDialogo("Juan Mateo", "Nunca vas a encontrar a tu hijo.");
+            Console.WriteLine("[CRRRR...]\n");
+            UtilidadesJuego.MostrarDialogo("Juan Mateo", "Cada paso que das... te acerca más a mí.\n");
+
+            Console.WriteLine("[Corte brusco: CRRRR...]");
+            Console.WriteLine("El hospital vuelve a quedar completamente en silencio.\n");
+
+            JuanMateo.CambiarEstado(EstadoCriatura.Acechando);
+            Daniel.Hablar("¿Qué es esto...? Me está persiguiendo.");
+        }
+
+        public void LeerExpediente(string numero)
+        {
+            if (numero == "001")
+            {
+                MarcarObjetivoCumplido("Leer Expediente N.º 001");
+                Daniel.Hablar("Juan Mateo... así se llamaba.");
+                Daniel.Hablar("¿Qué clase de experimentos hicieron aquí?");
+            }
+        }
+
+        public void InteractuarConPuerta(Puerta puerta)
+        {
+            bool abrio = false;
+            if (puerta.Estado == EstadoPuerta.CerradaSinLlave) abrio = puerta.IntentarAbrir();
+            else foreach (var item in Daniel.Inventario) if (puerta.IntentarAbrir(item)) { abrio = true; break; }
+
+            if (abrio && puerta.Identificador == "SALIDA_PRINCIPAL")
+            {
+                MarcarObjetivoCumplido("Escapar del hospital");
+                VerificarFinCapitulo();
+            }
+        }
+
+        private void MarcarObjetivoCumplido(string texto)
+        {
+            foreach (var o in Objetivos)
+            {
+                if (o.Descripcion == texto && !o.Cumplido)
+                {
+                    o.Cumplido = true;
+                    Console.WriteLine($"✅ Objetivo: {texto}");
+                    Daniel.Hablar("Un paso más… pero algo me vigila.");
+                    break;
+                }
+            }
+        }
+
+        private void VerificarFinCapitulo()
+        {
+            foreach (var o in Objetivos) if (!o.Cumplido) return;
+
+            Console.WriteLine("\n=== FINAL CAPÍTULO 1 – LA SALIDA ===");
+            Console.WriteLine("Daniel encuentra la llave de la salida principal.");
+            Console.WriteLine("La coloca en la cerradura... \"Click...\"");
+            Console.WriteLine("La puerta empieza a abrirse despacio.");
+            Console.WriteLine("Justo entonces: las luces se apagan. Solo brilla su linterna.");
+            Console.WriteLine("Al fondo: la silueta inmóvil de Juan Mateo.");
+            Console.WriteLine("[Altavoces: CRRRR... CRRRR...]");
+            Console.WriteLine("(Silencio...)");
+
+            UtilidadesJuego.MostrarDialogo("Juan Mateo", "¿De verdad creíste que esto iba a terminar aquí?");
+            Console.WriteLine("(Silencio...)");
+            UtilidadesJuego.MostrarDialogo("Juan Mateo", "Nunca tendrás el final feliz que buscas.");
+            Console.WriteLine("(Silencio...)");
+            UtilidadesJuego.MostrarDialogo("Juan Mateo", "Nunca encontrarás a tu hijo...");
+            Console.WriteLine("(Risa baja y oscura)\n");
+
+            Console.WriteLine("--- SISTEMA DE SEGURIDAD ---");
+            foreach (var cam in Camaras)
+            {
+                cam.Estado = EstadoCamara.Activa;
+                Console.WriteLine($"[{cam.Ubicacion}] → ACTIVADA — {cam.ObtenerVista()}");
+            }
+            Console.WriteLine("... Un segundo después...");
+            foreach (var cam in Camaras)
+            {
+                cam.Estado = EstadoCamara.SinSeñal;
+                Console.WriteLine($"[{cam.Ubicacion}] → {cam.ObtenerVista()}");
+            }
+            Console.WriteLine("-----------------------------\n");
+
+            Console.WriteLine("Las luces vuelven un instante: ya no está.");
+            Console.WriteLine("\nLlegan hombres de negro. Lo rodean.");
+            Console.WriteLine("Le disparan dardo tranquilizante… pierde el conocimiento.");
+            Console.WriteLine("→ TRANSICIÓN: CAPÍTULO 2 — HOSPITAL INFANTIL\n");
+        }
+    }
+
+    // ==============================
+    // EJECUCIÓN PRINCIPAL
+    // ==============================
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            PresentacionJuego.MostrarInicio();
+            Capitulo1 cap1 = new Capitulo1();
+
+            cap1.Daniel.SacarLinterna();
+            cap1.Daniel.EncenderApagarLinterna();
+            cap1.Daniel.Moverse(DireccionMovimiento.Adelante);
+
+            cap1.PrimeraComunicacionJuanMateo();
+
+            // Acá irán luego: recoger llaves, leer expediente, abrir puerta
+            // cap1.LeerExpediente("001");
+            // cap1.InteractuarConPuerta(...);
+        }
+    }
+}
